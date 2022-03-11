@@ -84,5 +84,31 @@ function getParsedAcctFromTxt(Text) {
     var candidates = [];
 
     var acctFirstResult = matchAll(parsingAcctFirstRegex, text);
-    var acct
+    for(var key of acctFirstResult) {
+        candidates.push(key);
+    }
+
+    var acctLastResult = matchAll(parsingAcctLastRegex, text);
+    for(var key of acctLastResult) {
+        candidates.push(key)
+    }
+
+    var result = [];
+
+    for(var candidate of candidates) {
+        var instName = candidate[1];
+        var instCode = INST_INFO[instName];
+        var instAccount = parseInt(candidate[3]);
+
+        result.push({instName, instAccount, txAmt: ""});
+    }
+
+    return {
+        candidates: result
+    }
 }
+
+function getRegResult(text) {
+    return getParsedAcctFromTxt(text)
+}
+
