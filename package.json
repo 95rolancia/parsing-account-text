@@ -1,0 +1,23 @@
+{
+  "name": "parsing-account-text",
+  "version": "1.0.0",
+  "description": "parsing account from text",
+  "main": "clipboard.js",
+  "scripts": {
+    "test": "mocha"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/95rolancia/parsing-account-text.git"
+  },
+  "author": "jjangjun",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/95rolancia/parsing-account-text/issues"
+  },
+  "homepage": "https://github.com/95rolancia/parsing-account-text#readme",
+  "devDependencies": {
+    "chai": "^4.3.6",
+    "mocha": "^9.2.2"
+  }
+}
