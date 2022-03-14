@@ -238,11 +238,13 @@ function getParsedAcctFromTxt(txt) {
     var instName = candidate[1];
     var instCode = INST_INFO[instName];
     var instAccount = candidate[3];
-
-    result.push({ instCode, instAccount, txAmt });
+    var dis = candidate[2].length;
+    result.push({ instCode, instAccount, txAmt, dis });
   }
 
-  result = result.slice(0, MAX_INST_CNT);
+  result.sort((a, b) => a.dis - b.dis); // 계좌번호와 금융기관명 사이가 가까운 순으로 정렬
+
+  result = result.slice(0, MAX_INST_CNT); // 이체정보 최대 개수 제한
 
   var resultCode = "00";
   if(result.length === 1 ) {
