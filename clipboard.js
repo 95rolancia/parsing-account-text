@@ -105,6 +105,7 @@ var regBlankPtn = /\s|,|-/g; // 공백, ",", "-" 패턴
 var MIN_LEN_ACCT = 7; // 계좌번호 최소 길이
 var MAX_LEN_ACCT = 15; // 계좌번호 최대 길이
 var MAX_INST_CNT = 5; // 이체 정보 최대 개수
+var MIN_DIS_BTW_ACCT_N_INST = 10; // 계좌번호와 금융기관명 사이 거리
 var wonRegex = /\d{1,3}(,?\d{3}){0,2}(\s{0,2})(원)/
 
 /** get amount
@@ -168,10 +169,14 @@ function getParsingAcctRegex() {
     MIN_LEN_ACCT +
     ',' +
     MAX_LEN_ACCT +
-    '})(.*)(';
+    '})(.{0,' +
+    MIN_DIS_BTW_ACCT_N_INST +
+    '})(';
 
   var acctLastBasicStr =
-    ')(\\D*(?=\\d*))(\\d{' +
+    ')(\\D{0,' +
+    MIN_DIS_BTW_ACCT_N_INST + 
+    '}(?=\\d*))(\\d{' +
     MIN_LEN_ACCT +
     ',' +
     MAX_LEN_ACCT +
