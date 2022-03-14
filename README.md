@@ -27,6 +27,7 @@
   - 현재 서비스에서 사용하고 있는 문법 준수 할 것
   - safari On IOS의 경우 ios 버전을 따라간다. -> IOS 9++ 
   - https://developer.android.com/about/versions/lollipop?hl=ko   -> android 5.0 에서는 37버전 탑재
+  - IE9 이상 지원,, 또르륵,,, ES6 사용 불가능
 
 # 문제 접근
 - 고려해야 할 케이스가 너무 많다.
