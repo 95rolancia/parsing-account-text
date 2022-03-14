@@ -105,18 +105,20 @@ var regBlankPtn = /\s|,|-/g; // 공백, ",", "-" 패턴
 var MIN_LEN_ACCT = 7; // 계좌번호 최소 길이
 var MAX_LEN_ACCT = 15; // 계좌번호 최대 길이
 var MAX_INST_CNT = 5; // 이체 정보 최대 개수
+var wonRegex = /\d{1,3}(,?\d{3}){0,2}(\s{0,2})(원)/
 
 /** get amount
  * @param {string} txt
  * @returns {number} 금액(원)
  */
 
-function getWonFromTxt(txt) {
+ function getWonFromTxt(txt) {
   var result = null;
-  var matched = txt.match(/\d+원/);
+  var matched = txt.match(wonRegex);
 
   if (matched) {
-    result = matched[0].substring(0, matched[0].length - 1);
+    var temp = matched[0].replace(/,/g, "");
+    result = temp.substring(0, temp.length - 1);
   }
   return result;
 }
@@ -237,8 +239,15 @@ function getParsedAcctFromTxt(txt) {
 
   result = result.slice(0, MAX_INST_CNT);
 
+  var resultCode = "00";
+  if(result.length === 1 ) {
+    resultCode = "01" // 이체 정보가 1개일 때
+  } else if(result.length >= 2) {
+    resultCode = "02" // 이체 정보가 2개 이상일 때
+  }
+
   return {
-    resultCode: result.length >= 2 ? '02' : '01', // 01: 이체 정보가 1개일 때, 02: 이체 정보가 2개 이상일 때
+    resultCode,
     candidates: result,
   };
 }
