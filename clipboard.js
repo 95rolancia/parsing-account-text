@@ -101,8 +101,7 @@ var INST_INFO = {
   SK: "266",
 };
 
-var regBlankPtn = /\s|\,|\-/g; // 공백, ",", "-" 패턴
-var MIN_DIS_BTW_BANK_ACCT = 8; // 계좌번호와 금융기관 사이의 글자 거리
+var regBlankPtn = /\s|,|-/g; // 공백, ",", "-" 패턴
 var MIN_LEN_ACCT = 7; // 계좌번호 최소 길이
 var MAX_LEN_ACCT = 15; // 계좌번호 최대 길이
 var MAX_INST_CNT = 5; // 이체 정보 최대 개수
@@ -167,14 +166,10 @@ function getParsingAcctRegex() {
     MIN_LEN_ACCT +
     ',' +
     MAX_LEN_ACCT +
-    '})(\\D{0,' +
-    MIN_DIS_BTW_BANK_ACCT +
-    '}(?=\\d*))(';
+    '})(.*)(';
 
   var acctLastBasicStr =
-    ')(\\D{0,' +
-    MIN_DIS_BTW_BANK_ACCT +
-    '}(?=\\d*))(\\d{' +
+    ')(\\D*(?=\\d*))(\\d{' +
     MIN_LEN_ACCT +
     ',' +
     MAX_LEN_ACCT +
@@ -211,7 +206,7 @@ function getParsedAcctFromTxt(txt) {
   txt = txt.replace(regBlankPtn, '');
 
   var parsingAcctRegex = getParsingAcctRegex();
-
+  
   var parsingAcctFirstRegex = parsingAcctRegex[0];
   var parsingAcctLastRegex = parsingAcctRegex[1];
 
@@ -255,5 +250,5 @@ function getRegResult(txt) {
 
 // 테스트 용도로 export 
 module.exports = {
-    getRegResult
+  getRegResult
 }
