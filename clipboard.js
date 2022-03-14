@@ -242,7 +242,7 @@ function getParsedAcctFromTxt(txt) {
     result.push({ instCode, instAccount, txAmt, dis });
   }
 
-  result.sort((a, b) => a.dis - b.dis); // 계좌번호와 금융기관명 사이가 가까운 순으로 정렬
+  result.sort(function (a, b) { return a.dis - b.dis} ); // 계좌번호와 금융기관명 사이가 가까운 순으로 정렬
 
   result = result.slice(0, MAX_INST_CNT); // 이체정보 최대 개수 제한
 
