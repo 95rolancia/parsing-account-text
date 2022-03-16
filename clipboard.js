@@ -98,22 +98,23 @@ var INST_INFO = {
   현대: "263",
   DB: "279",
   동부: "279",
-  SK: "266",
+  SK: "266"
 };
 
-var regBlankPtn = /\s|,|-/g; // 공백, ",", "-" 패턴
+var unnecessaryRegex = /[^\w가-힣]/g;
+
 var MIN_LEN_ACCT = 7; // 계좌번호 최소 길이
 var MAX_LEN_ACCT = 15; // 계좌번호 최대 길이
 var MAX_INST_CNT = 5; // 이체 정보 최대 개수
-var MIN_DIS_BTW_ACCT_N_INST = 10; // 계좌번호와 금융기관명 사이 거리
-var wonRegex = /\d{1,3}(,?\d{3}){0,2}(\s{0,2})(원)/
+var MIN_DIS_BTW_ACCT_N_INST = 5; // 계좌번호와 금융기관명 사이 거리
+var wonRegex = /(\d{1,3}(,\d{3}){0,2}(\s{0,2})(원))|(\d{1,9}(\s{0,2})(원))/;
 
 /** get amount
  * @param {string} txt
  * @returns {number} 금액(원)
  */
 
- function getWonFromTxt(txt) {
+function getWonFromTxt(txt) {
   var result = null;
   var matched = txt.match(wonRegex);
 
@@ -132,7 +133,7 @@ var wonRegex = /\d{1,3}(,?\d{3}){0,2}(\s{0,2})(원)/
  */
 
 function matchAll(rx, txt) {
-  rx = new RegExp(rx, 'g');
+  rx = new RegExp(rx, "g");
   let cap = [];
   let all = [];
   while ((cap = rx.exec(txt)) !== null) all.push(cap);
@@ -146,13 +147,13 @@ function matchAll(rx, txt) {
  */
 
 function getInstArrRegex() {
-    var regText = '';
+  var regText = "";
 
-    for (var key in INST_INFO) {
-      regText += key + '|';
-    }
-  
-    return regText.substring(0, regText.length - 1);
+  for (var key in INST_INFO) {
+    regText += key + "|";
+  }
+
+  return regText.substring(0, regText.length - 1);
 }
 
 /**
@@ -165,27 +166,30 @@ function getInstArrRegex() {
 
 function getParsingAcctRegex() {
   var acctFirstBasicStr =
-    '(\\d{' +
+    "(\\d{" +
     MIN_LEN_ACCT +
-    ',' +
+    "," +
     MAX_LEN_ACCT +
-    '})(.{0,' +
+    "})(.{0," +
     MIN_DIS_BTW_ACCT_N_INST +
-    '})(';
+    "})(";
 
   var acctLastBasicStr =
-    ')(\\D{0,' +
-    MIN_DIS_BTW_ACCT_N_INST + 
-    '}(?=\\d*))(\\d{' +
+    ")(\\D{0," +
+    MIN_DIS_BTW_ACCT_N_INST +
+    "}(?=\\d*))(\\d{" +
     MIN_LEN_ACCT +
-    ',' +
+    "," +
     MAX_LEN_ACCT +
-    '})';
+    "})";
 
   var instArr = getInstArrRegex();
 
-  var acctFirstParsingRegex = new RegExp(acctFirstBasicStr + instArr + ')', 'gi');
-  var acctLastParsingRegex = new RegExp('(' + instArr + acctLastBasicStr, 'gi');
+  var acctFirstParsingRegex = new RegExp(
+    acctFirstBasicStr + instArr + ")",
+    "gi"
+  );
+  var acctLastParsingRegex = new RegExp("(" + instArr + acctLastBasicStr, "gi");
 
   return [acctFirstParsingRegex, acctLastParsingRegex];
 }
@@ -196,24 +200,24 @@ function getParsingAcctRegex() {
  * @property {string} instCode
  * @property {string} instAccount
  * @property {string} txAmt
- * 
+ *
  * @typedef {object} ParsedAcctInfo
  * @property {string} resultCode
  * @property {AcctInfo[]} candidates
- * 
+ *
  *
  * @param {string} txt 클립보드에서 가져온 텍스트
  * @returns {ParsedAcctInfo} {resultCode(반환 타입), candidates: [{이체정보}, ...]}
  */
 
 function getParsedAcctFromTxt(txt) {
-  // 공백없애기 전에 금액 먼저 찾기
-  var txAmt = getWonFromTxt(txt) || '';
-
-  txt = txt.replace(regBlankPtn, '');
+  // unnecessaryRegex 적용 전에 금액 먼저 찾기
+  var txAmt = getWonFromTxt(txt) || "";
+  // 숫자, 한글, 영어를 제외한 문자 제거
+  txt = txt.replace(unnecessaryRegex, "");
 
   var parsingAcctRegex = getParsingAcctRegex();
-  
+
   var parsingAcctFirstRegex = parsingAcctRegex[0];
   var parsingAcctLastRegex = parsingAcctRegex[1];
 
@@ -239,23 +243,25 @@ function getParsedAcctFromTxt(txt) {
     var instCode = INST_INFO[instName];
     var instAccount = candidate[3];
     var dis = candidate[2].length;
-    result.push({ instCode, instAccount, txAmt, dis });
+    result.push({ instName, instAccount, txAmt, dis });
   }
 
-  result.sort(function (a, b) { return a.dis - b.dis} ); // 계좌번호와 금융기관명 사이가 가까운 순으로 정렬
+  result.sort(function (a, b) {
+    return a.dis - b.dis;
+  }); // 계좌번호와 금융기관명 사이가 가까운 순으로 정렬
 
   result = result.slice(0, MAX_INST_CNT); // 이체정보 최대 개수 제한
 
   var resultCode = "00";
-  if(result.length === 1 ) {
-    resultCode = "01" // 이체 정보가 1개일 때
-  } else if(result.length >= 2) {
-    resultCode = "02" // 이체 정보가 2개 이상일 때
+  if (result.length === 1) {
+    resultCode = "01"; // 이체 정보가 1개일 때
+  } else if (result.length >= 2) {
+    resultCode = "02"; // 이체 정보가 2개 이상일 때
   }
 
   return {
     resultCode,
-    candidates: result,
+    candidates: result
   };
 }
 
@@ -264,7 +270,6 @@ function getRegResult(txt) {
   return getParsedAcctFromTxt(txt);
 }
 
-// 테스트 용도로 export 
-module.exports = {
-  getRegResult
+module.exports {
+  getRegResult,
 }
