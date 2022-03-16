@@ -36,6 +36,14 @@ describe('이체정보 파싱 함수 테스트', () => {
         candidates: [{ instCode: '089', instAccount: '123412341234', txAmt: '5000' }],
       });
     });
+
+    it('금융기관명 페이크3', () => {
+      const result = getRegResult('123412341234 카뱅 ㄴㄴ 케뱅으로 삼마넌 보내줘');
+      expect(result).to.deep.equal({
+        resultCode: '01',
+        candidates: [{ instCode: '089', instAccount: '123412341234', txAmt: '5000' }],
+      });
+    });
   });
 
   describe('이체 정보가 두 개 이상일 때', () => {
