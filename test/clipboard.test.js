@@ -25,7 +25,7 @@ describe('이체정보 파싱 함수 테스트', () => {
       const result = getRegResult('국민은행 ㄴㄴ 국민증권 100 124 480175로 10,000원 보내줘~!');
       expect(result).to.deep.equal({
         resultCode: '01',
-        candidates: [{ instCode: '089', instAccount: '123412341234', txAmt: '5000' }],
+        candidates: [{ instCode: '218', instAccount: '123412341234', txAmt: '10000' }],
       });
     });
 
@@ -33,7 +33,7 @@ describe('이체정보 파싱 함수 테스트', () => {
       const result = getRegResult('국민의당 김케이 100012312341273123(우리)');
       expect(result).to.deep.equal({
         resultCode: '01',
-        candidates: [{ instCode: '089', instAccount: '123412341234', txAmt: '5000' }],
+        candidates: [{ instCode: '020', instAccount: '123412341234', txAmt: '' }],
       });
     });
 
@@ -41,7 +41,7 @@ describe('이체정보 파싱 함수 테스트', () => {
       const result = getRegResult('123412341234 카뱅 ㄴㄴ 케뱅으로 삼마넌 보내줘');
       expect(result).to.deep.equal({
         resultCode: '01',
-        candidates: [{ instCode: '089', instAccount: '123412341234', txAmt: '5000' }],
+        candidates: [{ instCode: '089', instAccount: '123412341234', txAmt: '30000' }],
       });
     });
   });
