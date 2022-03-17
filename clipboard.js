@@ -177,7 +177,7 @@ function getParsingAcctRegex() {
   var acctLastBasicStr =
     ")(\\D{0," +
     MIN_DIS_BTW_ACCT_N_INST +
-    "}(?=\\d*))(\\d{" +
+    "})(\\d{" +
     MIN_LEN_ACCT +
     "," +
     MAX_LEN_ACCT +
