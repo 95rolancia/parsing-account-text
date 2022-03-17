@@ -246,13 +246,19 @@ function getParsedAcctFromTxt(txt) {
     result.push({ instName, instAccount, txAmt, dis });
   }
 
+
   result.sort(function (a, b) {
     return a.dis - b.dis;
   }); // 계좌번호와 금융기관명 사이가 가까운 순으로 정렬
-
+  
   result = result.slice(0, MAX_INST_CNT); // 이체정보 최대 개수 제한
 
-  var resultCode = "00";
+  if(result.length === 0) {
+    var matched = txt.match(/\d{7,15}/g);
+    matched && result.push({ instCode: "", instAccount: matched[0], txAmt: "" });
+  } 
+
+  var resultCode = "00"; // 이체 정보가 0개일 때
   if (result.length === 1) {
     resultCode = "01"; // 이체 정보가 1개일 때
   } else if (result.length >= 2) {
@@ -270,6 +276,6 @@ function getRegResult(txt) {
   return getParsedAcctFromTxt(txt);
 }
 
-module.exports {
+module.exports = {
   getRegResult,
 }
