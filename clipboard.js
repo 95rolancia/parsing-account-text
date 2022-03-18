@@ -98,46 +98,8 @@ var INST_INFO = {
   현대: "263",
   DB: "279",
   동부: "279",
-  SK: "266",
+  SK: "266"
 };
-
-var regBlankPtn = /\s|,|-/g; // 공백, ",", "-" 패턴
-var MIN_LEN_ACCT = 7; // 계좌번호 최소 길이
-var MAX_LEN_ACCT = 15; // 계좌번호 최대 길이
-var MAX_INST_CNT = 5; // 이체 정보 최대 개수
-var MIN_DIS_BTW_ACCT_N_INST = 10; // 계좌번호와 금융기관명 사이 거리
-var wonRegex = /\d{1,3}(,?\d{3}){0,2}(\s{0,2})(원)/
-
-/** get amount
- * @param {string} txt
- * @returns {number} 금액(원)
- */
-
- function getWonFromTxt(txt) {
-  var result = null;
-  var matched = txt.match(wonRegex);
-
-  if (matched) {
-    var temp = matched[0].replace(/,/g, "");
-    result = temp.substring(0, temp.length - 1);
-  }
-  return result;
-}
-
-/**
- * matchAll
- * @param {string} rx
- * @param {string} txt
- * @returns {IterableIterator<RegExpMatchArray>} object iterator
- */
-
-function matchAll(rx, txt) {
-  rx = new RegExp(rx, 'g');
-  let cap = [];
-  let all = [];
-  while ((cap = rx.exec(txt)) !== null) all.push(cap);
-  return all;
-}
 
 /**
  * 금융기관명들의 정규표현식 문자열을 반환하는 함수
@@ -146,13 +108,13 @@ function matchAll(rx, txt) {
  */
 
 function getInstArrRegex() {
-    var regText = '';
+  var regText = "";
 
-    for (var key in INST_INFO) {
-      regText += key + '|';
-    }
-  
-    return regText.substring(0, regText.length - 1);
+  for (var key in INST_INFO) {
+    regText += key + "|";
+  }
+
+  return new RegExp(regText.substring(0, regText.length - 1), "g");
 }
 
 /**
@@ -163,44 +125,17 @@ function getInstArrRegex() {
  * @returns {[RegExp, RegExp]} 케이|K뱅크|국민 ...
  */
 
-function getParsingAcctRegex() {
-  var acctFirstBasicStr =
-    '(\\d{' +
-    MIN_LEN_ACCT +
-    ',' +
-    MAX_LEN_ACCT +
-    '})(.{0,' +
-    MIN_DIS_BTW_ACCT_N_INST +
-    '})(';
-
-  var acctLastBasicStr =
-    ')(\\D{0,' +
-    MIN_DIS_BTW_ACCT_N_INST + 
-    '}(?=\\d*))(\\d{' +
-    MIN_LEN_ACCT +
-    ',' +
-    MAX_LEN_ACCT +
-    '})';
-
-  var instArr = getInstArrRegex();
-
-  var acctFirstParsingRegex = new RegExp(acctFirstBasicStr + instArr + ')', 'gi');
-  var acctLastParsingRegex = new RegExp('(' + instArr + acctLastBasicStr, 'gi');
-
-  return [acctFirstParsingRegex, acctLastParsingRegex];
-}
-
 /**
  * 텍스트로부터 이체정보에 관한 정보를 파싱하는 함수
  * @typedef {object} AcctInfo
  * @property {string} instCode
  * @property {string} instAccount
  * @property {string} txAmt
- * 
+ *
  * @typedef {object} ParsedAcctInfo
- * @property {string} resultCode
- * @property {AcctInfo[]} candidates
- * 
+ * @property {string} instCode
+ * @property {string} instAccount
+ * @property {string} txAmt
  *
  * @param {string} txt 클립보드에서 가져온 텍스트
  * @returns {ParsedAcctInfo} {resultCode(반환 타입), candidates: [{이체정보}, ...]}
@@ -208,53 +143,88 @@ function getParsingAcctRegex() {
 
 function getParsedAcctFromTxt(txt) {
   // 공백없애기 전에 금액 먼저 찾기
-  var txAmt = getWonFromTxt(txt) || '';
+  const amountCandidates = txt.matchAll(/[\d,]+(십?|백?|천?|만?)원/g);
 
-  txt = txt.replace(regBlankPtn, '');
+  console.log(txt);
+  const amounts = [];
 
-  var parsingAcctRegex = getParsingAcctRegex();
-  
-  var parsingAcctFirstRegex = parsingAcctRegex[0];
-  var parsingAcctLastRegex = parsingAcctRegex[1];
+  for (const amount of amountCandidates) {
+    if (checkAmount(amount[0])) {
+      calculateHanguelAmount(amount);
+      amounts.push(amount[0]);
+    }
 
-  var candidates = [];
-  // 계좌번호 - 금융기관명 순서
-  var acctFirstResult = matchAll(parsingAcctFirstRegex, txt);
-  for (var key of acctFirstResult) {
-    var temp = key[1];
-    key[1] = key[3];
-    key[3] = temp;
-    candidates.push(key);
-  }
-  // 금융기관명 - 계좌번호 순서
-  var acctLastResult = matchAll(parsingAcctLastRegex, txt);
-  for (var key of acctLastResult) {
-    candidates.push(key);
+    const regex = new RegExp(amount[0]);
+    txt = txt.replace(regex, "");
+    console.log(txt);
   }
 
-  var result = [];
+  // const calculatedAmounts = amounts.map((amount) => {
+  //   console.log('amount', amount);
+  // })
 
-  for (var candidate of candidates) {
-    var instName = candidate[1];
-    var instCode = INST_INFO[instName];
-    var instAccount = candidate[3];
+  // console.log("amounts", amounts);
+  // console.log(txt);
+  // // 텍스트 다듬기
+  // txt = txt.replace(/\s{2,}/g, " ");
+  // console.log(txt);
 
-    result.push({ instCode, instAccount, txAmt });
-  }
+  // txt = txt.replace(/(\r\n|\n|\r)/g, " ");
+  // console.log(txt);
 
-  result = result.slice(0, MAX_INST_CNT);
+  // var result = txt.match(/\d+(-\d+){1,3}|\d+(\s\d+){1,3}|\d{7,15}/g);
 
-  var resultCode = "00";
-  if(result.length === 1 ) {
-    resultCode = "01" // 이체 정보가 1개일 때
-  } else if(result.length >= 2) {
-    resultCode = "02" // 이체 정보가 2개 이상일 때
-  }
+  // console.log("result: ", result);
 
   return {
-    resultCode,
-    candidates: result,
+    txAmt: ""
   };
+}
+
+function calculateHanguelAmount(amountInfo) {
+  const [amount, unit] = amountInfo;
+
+  let number;
+  let result;
+
+  if (unit) {
+    number = amount.slice(0, amount.length - 2);
+    if (unit === "십") {
+    } else if (unit === "백") {
+    } else if (unit === "천") {
+    } else if (unit === "만") {
+    }
+  } else {
+    result = amount.slice(0, amount.length - 1);
+  }
+
+  console.log(number, unit);
+
+  return result;
+}
+
+function checkAmount(amount) {
+  let cnt = 0;
+  let result = true;
+
+  // ,로 시작했을 때
+  if (amount[0] === ",") {
+    return false;
+  }
+
+  for (let i = amount.length - 2; i >= 0; i--) {
+    if (!isNaN(amount[i])) {
+      cnt++;
+    } else if (amount[i] === "," && cnt % 3 !== 0) {
+      result = false;
+      break;
+    } else if (amount[i] === "," && cnt === 0) {
+      result = false;
+      break;
+    }
+  }
+
+  return result;
 }
 
 // 함수명 변경하기 전에 호환성을 위해
@@ -262,7 +232,11 @@ function getRegResult(txt) {
   return getParsedAcctFromTxt(txt);
 }
 
-// 테스트 용도로 export 
-module.exports = {
-  getRegResult
-}
+getRegResult("1234원 12,12,12원 12십원");
+
+// txt = txt.replace(/[^\da-zA-Z가-힣\s]/g, "");
+// console.log(txt);
+// txt = txt.replace(/\s{1,}/g, "|");
+// console.log(txt)
+// txt = txt.replace(/\-/g, "|");
+// console.log(txt)
